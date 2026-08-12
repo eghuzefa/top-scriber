@@ -1,9 +1,10 @@
 # Top Scriber
 
-A minimalist training platform for professional scribers — medical, legal, and general
-transcription. Six skills, 100 curated drills, an AI scenario generator for unlimited fresh
-material, and a progress dashboard that tracks what actually matters: per-skill accuracy and
-speed trends.
+A minimalist training platform built for **medical scribes** — with legal and general
+transcription tracks included. Six skills, 134 curated drills led by a dedicated medical
+scribe track (provider dictations, chart formatting, clinical vocabulary), an AI scenario
+generator for unlimited fresh material, and a progress dashboard that tracks what actually
+matters: per-skill accuracy and speed trends.
 
 Everything runs in the browser. No backend, no accounts — progress lives in `localStorage`,
 audio is synthesized on the fly, and the optional AI generator calls the Anthropic API
@@ -33,10 +34,12 @@ unlocks the accent variety in the Accents & speed module.
 | **Accents & speed** | Fast talkers, unfamiliar accents, noisy lines | Same as listen & type, but playback speed is locked to the scenario and some scenarios add background noise |
 | **Endurance** | Long-form dictation, shift-length focus | Overall accuracy plus per-quarter accuracy, so you can see whether the last quarter held up like the first |
 
-The curated library is exactly 100 samples (18 typing, 22 listen, 18 vocabulary sets,
-14 formatting, 16 accent/speed, 12 endurance), each tagged by difficulty
-(beginner/intermediate/advanced) and domain (medical/legal/general). A test locks the count
-and integrity (`src/data/samples/library.test.ts`).
+The curated library is exactly 134 samples (24 typing, 30 listen, 24 vocabulary sets,
+19 formatting, 21 accent/speed, 16 endurance), each tagged by difficulty
+(beginner/intermediate/advanced) and domain (medical/legal/general). Every module leads with
+a medical scribe section — HPI and exam dictations, SOAP-style chart formatting, charting
+abbreviations, drug-name spelling, attending-speed dictation, and full discharge-summary
+endurance takes. A test locks the count and integrity (`src/data/samples/library.test.ts`).
 
 ## How audio works
 

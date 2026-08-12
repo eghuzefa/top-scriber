@@ -24,7 +24,7 @@ export const SKILLS: SkillMeta[] = [
     id: 'listen',
     short: 'Listen & type',
     name: 'Listen & type',
-    tagline: 'The core scriber skill: transcribe speech in real time.',
+    tagline: 'The core scribe skill: transcribe provider dictation in real time.',
     how: 'Press play and type what you hear. Pausing and replaying is allowed — replays are counted, not punished. Scoring compares your words against the reference; case and punctuation are not penalized here.',
   },
   {
@@ -38,8 +38,8 @@ export const SKILLS: SkillMeta[] = [
     id: 'format',
     short: 'Formatting',
     name: 'Formatting discipline',
-    tagline: 'Turn a raw feed into house style: timestamps, speaker labels, clean punctuation.',
-    how: 'Rewrite the raw feed following the house style shown beside it. Scoring is strict — capitalization and punctuation count on every word. Line breaks are not scored.',
+    tagline: 'Turn raw dictation into chart notes and clean transcripts: sections, labels, punctuation.',
+    how: 'Rewrite the raw feed following the style card shown beside it — chart sections for medical dictations, speaker labels and timestamps for dialogues. Scoring is strict: capitalization and punctuation count on every word. Line breaks are not scored.',
   },
   {
     id: 'adapt',

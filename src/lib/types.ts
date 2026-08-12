@@ -47,6 +47,8 @@ export interface FormatSample extends SampleBase {
   kind: 'format'
   raw: string
   formatted: string
+  /** Style card shown for this sample; defaults to the dialogue house style. */
+  rules?: string[]
 }
 
 export type Sample = TypingSample | TranscribeSample | VocabSample | FormatSample

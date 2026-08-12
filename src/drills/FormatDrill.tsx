@@ -86,9 +86,9 @@ export function FormatDrill({ sample, onFinish, onQuit }: FormatDrillProps) {
             <div className="raw-feed">{sample.raw}</div>
           </div>
           <div className="style-card">
-            <h3>House style</h3>
+            <h3>{sample.rules ? 'Chart style' : 'House style'}</h3>
             <ol>
-              {HOUSE_STYLE.map((rule, i) => (
+              {(sample.rules ?? HOUSE_STYLE).map((rule, i) => (
                 <li key={i}>{rule}</li>
               ))}
             </ol>
@@ -98,7 +98,11 @@ export function FormatDrill({ sample, onFinish, onQuit }: FormatDrillProps) {
         <textarea
           ref={inputRef}
           className="transcribe-input"
-          placeholder="Rewrite the raw feed in house style — one turn per line…"
+          placeholder={
+            sample.rules
+              ? 'Rewrite the dictation as a chart note — one section per line…'
+              : 'Rewrite the raw feed in house style — one turn per line…'
+          }
           value={typed}
           spellCheck={false}
           autoFocus

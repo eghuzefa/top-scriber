@@ -14,6 +14,19 @@ export const HOUSE_STYLE: string[] = [
   'Proper nouns keep their capitals. Spelled-out letters join with hyphens (O-R-T-E-G-A).',
 ]
 
+/**
+ * The chart style card used by medical-scribe formatting drills (dictation →
+ * structured chart note). Samples using it set `rules: MED_CHART_STYLE`.
+ */
+export const MED_CHART_STYLE: string[] = [
+  'Spoken section names become uppercase headers, each starting its own line: "chief complaint" → CC:, "history of present illness" → HPI:, "review of systems" → ROS:, "physical exam" → PE:, "vitals" → VITALS:, "assessment and plan" → A/P:, "medications" → MEDS:. Header, colon, space, then the content.',
+  'Capitalize sentences. Statements end with a period. Break run-ons into short sentences.',
+  'Drop filler words: um, uh, er.',
+  'Vitals, doses, ages, and durations use numerals with standard units (BP 128/76, HR 72, 98.6 F, 20 mg, 34-year-old, 3 days).',
+  'Dosing abbreviations stay uppercase: BID, TID, PRN, PO, NPO, STAT.',
+  'Spoken punctuation becomes the mark: "period" → . and "comma" → ,',
+]
+
 const f = (
   id: string,
   title: string,
