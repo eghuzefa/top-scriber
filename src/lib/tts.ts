@@ -69,6 +69,14 @@ export function pickVoice(voices: SpeechSynthesisVoice[], hint: VoiceHint): Voic
   return { voice: voices[0] ?? null, exact: false }
 }
 
+/**
+ * Some engines cut utterances off after roughly 15 seconds of audio. Scale
+ * the chunk budget with playback rate so slow playback stays under that.
+ */
+export function maxChunkLen(rate: number): number {
+  return Math.max(40, Math.min(200, Math.round(200 * rate)))
+}
+
 /** Split text into speakable chunks: whole sentences, hard-split when long. */
 export function chunkText(text: string, maxLen = 180): string[] {
   const clean = text.replace(/\s+/g, ' ').trim()
@@ -135,19 +143,35 @@ export class TtsPlayer {
 
   load(text: string, opts: TtsOptions): void {
     this.stop()
-    this.chunks = chunkText(text)
+    this.chunks = chunkText(text, maxChunkLen(opts.rate))
     this.rate = opts.rate
     this.voiceHint = opts.voiceHint
     this.set({ state: 'idle', chunkIndex: 0, chunkCount: this.chunks.length })
   }
 
-  /** Change speed; takes effect immediately by restarting the current chunk. */
+  /**
+   * Change speed. The unspoken remainder is re-chunked for the new rate, and
+   * if audio was playing the current chunk restarts immediately at the new
+   * speed. If it was paused, playback holds position; Play resumes it.
+   */
   setRate(rate: number): void {
     this.rate = rate
-    if (this.snap.state === 'playing') {
+    const done = this.chunks.slice(0, this.idx)
+    const rest = this.chunks.slice(this.idx).join(' ')
+    this.chunks = [...done, ...chunkText(rest, maxChunkLen(rate))]
+    const wasPlaying = this.snap.state === 'playing'
+    const wasPaused = this.snap.state === 'paused'
+    if (wasPlaying || wasPaused) {
       this.gen++
+      this.clearWatchdog()
       window.speechSynthesis.cancel()
-      this.speakFrom(this.idx, false)
+      if (wasPlaying) {
+        this.speakFrom(this.idx, false)
+      } else {
+        this.set({ state: 'idle', chunkIndex: this.idx, chunkCount: this.chunks.length })
+      }
+    } else {
+      this.set({ ...this.snap, chunkCount: this.chunks.length })
     }
   }
 
@@ -202,7 +226,7 @@ export class TtsPlayer {
     }
     this.idx = i
     const u = new SpeechSynthesisUtterance(this.chunks[i])
-    u.rate = Math.min(2, Math.max(0.5, this.rate))
+    u.rate = Math.min(2, Math.max(0.25, this.rate))
     if (this.voice) u.voice = this.voice
     u.onstart = () => {
       if (gen !== this.gen) return

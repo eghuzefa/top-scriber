@@ -1,7 +1,7 @@
 import type { TtsSnapshot } from '../lib/tts'
 import type { NoiseLevel } from '../lib/types'
 
-const RATES = [0.75, 0.9, 1, 1.1, 1.25, 1.5]
+const RATES = [0.25, 0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5]
 
 interface AudioBarProps {
   snap: TtsSnapshot
