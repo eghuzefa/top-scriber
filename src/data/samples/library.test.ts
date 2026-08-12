@@ -3,8 +3,16 @@ import { ALL_SAMPLES } from './index'
 import { HOUSE_STYLE } from './format'
 
 describe('practice library', () => {
-  it('contains exactly 100 samples', () => {
-    expect(ALL_SAMPLES).toHaveLength(100)
+  it('contains exactly 134 samples', () => {
+    expect(ALL_SAMPLES).toHaveLength(134)
+  })
+
+  it('gives every skill a medical-scribe section', () => {
+    const skills = new Set(ALL_SAMPLES.map((s) => s.skill))
+    for (const skill of skills) {
+      const medical = ALL_SAMPLES.filter((s) => s.skill === skill && s.domain === 'medical')
+      expect(medical.length, `medical samples for ${skill}`).toBeGreaterThanOrEqual(6)
+    }
   })
 
   it('has unique ids', () => {
@@ -36,17 +44,24 @@ describe('practice library', () => {
     }
   })
 
-  it('keeps formatting samples consistent: same timestamps in raw and formatted, no fillers left in the target', () => {
+  it('keeps formatting samples consistent: structure matches their style card, no fillers left in the target', () => {
     expect(HOUSE_STYLE.length).toBeGreaterThan(0)
     for (const s of ALL_SAMPLES) {
       if (s.kind !== 'format') continue
-      const rawStamps = s.raw.match(/\d\d:\d\d/g) ?? []
-      const fmtStamps = s.formatted.match(/\[\d\d:\d\d\]/g) ?? []
-      expect(fmtStamps.length, s.id).toBe(rawStamps.length)
       expect(s.formatted, s.id).not.toMatch(/\b(um|uh|er)\b/i)
-      // Every line follows "[MM:SS] S1: ..." or "[MM:SS] S2: ..."
-      for (const line of s.formatted.split('\n')) {
-        expect(line, s.id).toMatch(/^\[\d\d:\d\d\] S[12]: \S/)
+      if (s.rules) {
+        // Chart-style dictation: every line is "HEADER: content."
+        for (const line of s.formatted.split('\n')) {
+          expect(line, s.id).toMatch(/^[A-Z][A-Z/]*: \S/)
+        }
+      } else {
+        // Dialogue house style: timestamps carry over, every line labeled.
+        const rawStamps = s.raw.match(/\d\d:\d\d/g) ?? []
+        const fmtStamps = s.formatted.match(/\[\d\d:\d\d\]/g) ?? []
+        expect(fmtStamps.length, s.id).toBe(rawStamps.length)
+        for (const line of s.formatted.split('\n')) {
+          expect(line, s.id).toMatch(/^\[\d\d:\d\d\] S[12]: \S/)
+        }
       }
     }
   })
