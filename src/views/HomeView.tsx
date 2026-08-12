@@ -23,10 +23,11 @@ export function HomeView() {
   return (
     <div>
       <header className="page-header">
-        <h1 className="page-title">Train like a scriber.</h1>
+        <h1 className="page-title">Train like a medical scribe.</h1>
         <p className="page-sub">
-          Six skills, 100 curated drills, and an AI generator when you want fresh material.
-          Pick a skill, run a drill, see exactly what to fix.
+          Provider dictations, chart formatting, and clinical vocabulary across six skills — 134
+          curated drills, medical scribe track first, legal and general tracks included. Pick a
+          skill, run a drill, see exactly what to fix.
         </p>
         {!anySessions && (
           <p className="page-sub" style={{ marginTop: 8 }}>

@@ -3,9 +3,7 @@ import { samplesForSkill } from '../data/samples'
 import { SKILL_BY_ID } from '../data/skills'
 import { routeHash } from '../lib/router'
 import { loadGenerated, loadResults } from '../lib/storage'
-import type { Difficulty, Sample, SkillId } from '../lib/types'
-
-const DIFFICULTIES: Difficulty[] = ['beginner', 'intermediate', 'advanced']
+import type { Sample, SkillId } from '../lib/types'
 
 function sampleSize(sample: Sample): string {
   switch (sample.kind) {
@@ -16,34 +14,37 @@ function sampleSize(sample: Sample): string {
     case 'vocab':
       return `${sample.terms.length} terms · ${sample.secondsPerTerm}s each`
     case 'format':
-      return `${sample.formatted.split('\n').length} turns`
+      return `${sample.formatted.split('\n').length} ${sample.rules ? 'sections' : 'turns'}`
   }
 }
 
 export function SkillView({ skillId }: { skillId: SkillId }) {
   const meta = SKILL_BY_ID[skillId]
 
-  const { curated, generated, bestBySample } = useMemo(() => {
+  const { medical, other, generated, bestBySample } = useMemo(() => {
     const best = new Map<string, number>()
     for (const r of loadResults()) {
       if (r.skill !== skillId) continue
       const prev = best.get(r.sampleId)
       if (prev === undefined || r.accuracy > prev) best.set(r.sampleId, r.accuracy)
     }
+    const curated = samplesForSkill(skillId)
     return {
-      curated: samplesForSkill(skillId),
+      medical: curated.filter((s) => s.domain === 'medical'),
+      other: curated.filter((s) => s.domain !== 'medical'),
       generated: loadGenerated().filter((g) => g.skill === skillId),
       bestBySample: best,
     }
   }, [skillId])
 
-  const row = (sample: Sample) => {
+  const row = (sample: Sample, showDomain: boolean) => {
     const best = bestBySample.get(sample.id)
     return (
       <a key={sample.id} className="sample-row" href={routeHash({ name: 'drill', sampleId: sample.id })}>
         <span className="title">{sample.title}</span>
         {sample.generated && <span className="chip chip-accent">AI</span>}
-        <span className="chip">{sample.domain}</span>
+        {showDomain && <span className="chip">{sample.domain}</span>}
+        <span className="chip">{sample.difficulty}</span>
         <span className="size">{sampleSize(sample)}</span>
         {best !== undefined ? (
           <span className="best">best {Math.round(best * 100)}%</span>
@@ -62,21 +63,24 @@ export function SkillView({ skillId }: { skillId: SkillId }) {
         <p className="page-how">{meta.how}</p>
       </header>
 
-      {DIFFICULTIES.map((d) => {
-        const group = curated.filter((s) => s.difficulty === d)
-        if (group.length === 0) return null
-        return (
-          <section className="sample-group" key={d}>
-            <h2>{d}</h2>
-            <div className="sample-list">{group.map(row)}</div>
-          </section>
-        )
-      })}
+      {medical.length > 0 && (
+        <section className="sample-group">
+          <h2>Medical scribe</h2>
+          <div className="sample-list">{medical.map((s) => row(s, false))}</div>
+        </section>
+      )}
+
+      {other.length > 0 && (
+        <section className="sample-group">
+          <h2>Legal &amp; general</h2>
+          <div className="sample-list">{other.map((s) => row(s, true))}</div>
+        </section>
+      )}
 
       {generated.length > 0 && (
         <section className="sample-group">
           <h2>Your AI scenarios</h2>
-          <div className="sample-list">{generated.map(row)}</div>
+          <div className="sample-list">{generated.map((s) => row(s, true))}</div>
         </section>
       )}
 
