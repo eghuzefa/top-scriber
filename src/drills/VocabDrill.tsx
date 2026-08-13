@@ -175,7 +175,13 @@ export function VocabDrill({ sample, onFinish, onQuit }: VocabDrillProps) {
         <div className="vocab-stage">
           <p className="vocab-clue">{term.clue}</p>
           {supported && (
-            <button className="btn btn-secondary" onClick={speakTerm}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                speakTerm()
+                inputRef.current?.focus()
+              }}
+            >
               Hear it again
             </button>
           )}

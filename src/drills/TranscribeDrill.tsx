@@ -75,19 +75,29 @@ export function TranscribeDrill({ sample, onFinish, onQuit }: TranscribeDrillPro
     if (startedAt === null) setStartedAt(Date.now())
   }
 
+  // Audio controls hand focus straight back to the typing area, so the next
+  // keystroke always lands in the transcript — no click required.
+  const refocus = () => inputRef.current?.focus()
+
   const onPlay = () => {
     start()
     void playerRef.current?.play()
+    refocus()
   }
-  const onPause = () => playerRef.current?.pause()
+  const onPause = () => {
+    playerRef.current?.pause()
+    refocus()
+  }
   const onRestart = () => {
     start()
     setReplays((r) => r + 1)
     playerRef.current?.restart()
+    refocus()
   }
   const onRateChange = (r: number) => {
     setRate(r)
     playerRef.current?.setRate(r)
+    refocus()
   }
 
   const finish = () => {
