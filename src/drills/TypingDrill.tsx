@@ -13,7 +13,9 @@ interface TypingDrillProps {
 
 /**
  * Copy-typing drill: the passage is on screen, every keystroke is checked
- * immediately. Timer runs from the first keystroke to the last character.
+ * immediately. The whole page is the input surface — keystrokes count from
+ * the moment the drill opens, no click required. Timer runs from the first
+ * keystroke to the last character.
  */
 export function TypingDrill({ sample, onFinish, onQuit }: TypingDrillProps) {
   const text = sample.text
@@ -21,15 +23,43 @@ export function TypingDrill({ sample, onFinish, onQuit }: TypingDrillProps) {
   const [startedAt, setStartedAt] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
   const [quitAsk, setQuitAsk] = useState(false)
-  const [focused, setFocused] = useState(true)
   const keypresses = useRef(0)
   const errorKeypresses = useRef(0)
   const finished = useRef(false)
-  const boxRef = useRef<HTMLDivElement>(null)
+  const typedRef = useRef('')
 
   useEffect(() => {
-    boxRef.current?.focus()
-  }, [])
+    typedRef.current = typed
+  }, [typed])
+
+  // Global key capture: typing works without focusing anything first.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (quitAsk || finished.current) return
+      // Don't swallow keys meant for real controls (the Exit button, links).
+      const target = e.target as HTMLElement | null
+      if (target?.closest('button, a, input, select, textarea')) return
+      if (e.key === 'Escape') {
+        setQuitAsk(true)
+        return
+      }
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.key === 'Backspace') {
+        e.preventDefault()
+        setTyped((t) => t.slice(0, -1))
+        return
+      }
+      if (e.key.length !== 1) return
+      e.preventDefault()
+      if (typedRef.current.length >= text.length) return
+      setStartedAt((s) => s ?? Date.now())
+      keypresses.current += 1
+      if (e.key !== text[typedRef.current.length]) errorKeypresses.current += 1
+      setTyped((t) => t + e.key)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [quitAsk, text])
 
   useEffect(() => {
     if (startedAt === null || finished.current) return
@@ -61,27 +91,6 @@ export function TypingDrill({ sample, onFinish, onQuit }: TypingDrillProps) {
     })
   }, [typed, text, startedAt, sample, onFinish])
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (quitAsk || finished.current) return
-    if (e.key === 'Escape') {
-      setQuitAsk(true)
-      return
-    }
-    if (e.ctrlKey || e.metaKey || e.altKey) return
-    if (e.key === 'Backspace') {
-      e.preventDefault()
-      setTyped((t) => t.slice(0, -1))
-      return
-    }
-    if (e.key.length !== 1) return
-    e.preventDefault()
-    if (typed.length >= text.length) return
-    if (startedAt === null) setStartedAt(Date.now())
-    keypresses.current += 1
-    if (e.key !== text[typed.length]) errorKeypresses.current += 1
-    setTyped((t) => t + e.key)
-  }
-
   const elapsed = startedAt === null ? 0 : Math.max(0, now - startedAt)
   const liveWpm = startedAt === null ? 0 : Math.round(grossWpm(typed.length, Date.now() - startedAt))
   const liveErrors = countCurrentErrors(text, typed)
@@ -112,16 +121,7 @@ export function TypingDrill({ sample, onFinish, onQuit }: TypingDrillProps) {
             <span className="chip">{sample.difficulty}</span>
           </span>
         </div>
-        <div
-          ref={boxRef}
-          className="type-target"
-          tabIndex={0}
-          role="textbox"
-          aria-label="Type the passage shown"
-          onKeyDown={onKeyDown}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-        >
+        <div className="type-target" role="textbox" aria-label="Type the passage shown" aria-readonly="false">
           {Array.from(text, (ch, i) => {
             const cls =
               i < typed.length ? (typed[i] === ch ? 'ok' : 'bad') : i === typed.length ? 'pending caret' : 'pending'
@@ -132,15 +132,11 @@ export function TypingDrill({ sample, onFinish, onQuit }: TypingDrillProps) {
             )
           })}
         </div>
-        {!focused && <div className="type-unfocused">Click the passage to keep typing.</div>}
-        {startedAt === null && focused && (
-          <div className="type-unfocused">The timer starts with your first keystroke.</div>
+        {startedAt === null && (
+          <div className="type-unfocused">Just start typing — the timer starts with your first keystroke.</div>
         )}
       </div>
-      {quitAsk && <QuitOverlay onResume={() => {
-        setQuitAsk(false)
-        boxRef.current?.focus()
-      }} onQuit={onQuit} />}
+      {quitAsk && <QuitOverlay onResume={() => setQuitAsk(false)} onQuit={onQuit} />}
     </div>
   )
 }
